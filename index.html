@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hipoteca. Comparador de escenarios</title>
+<meta name="description" content="Comparador de escenarios hipotecarios con bonificaciones y productos vinculados. Todo el cálculo ocurre en tu dispositivo.">
+<meta name="theme-color" content="#F7F8F6">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Hipoteca">
+<style>
+:root{
+  --fondo:#F7F8F6; --tarjeta:#FFFFFF; --tinta:#1B2A33; --tinta2:#5A6B72;
+  --verde:#0E7C66; --verde-suave:#E4F1EC; --cobre:#B4532A; --cobre-suave:#F6EAE3;
+  --zebra:#F1F4F2; --foco:#0E7C66;
+  --radio:14px; --sombra:0 1px 3px rgba(27,42,51,.08),0 4px 14px rgba(27,42,51,.06);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--fondo); color:var(--tinta);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(32px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+}
+h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:1.7rem;margin:.2rem 0 .1rem}
+.sub{color:var(--tinta2);font-size:.9rem;margin:0 0 1.4rem}
+h2{font-size:1.05rem;margin:0 0 .9rem;letter-spacing:.02em}
+.eyebrow{display:block;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--verde);margin-bottom:.15rem}
+.disposicion{max-width:1180px;margin:0 auto}
+@media(min-width:900px){
+  .disposicion{display:grid;grid-template-columns:390px 1fr;gap:24px;align-items:start}
+  .col-entradas{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;padding-right:2px}
+}
+.tarjeta{background:var(--tarjeta);border-radius:var(--radio);box-shadow:var(--sombra);padding:18px;margin-bottom:18px}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-size:.82rem;font-weight:600;color:var(--tinta2);margin-bottom:4px}
+.campo input,.campo select{
+  width:100%;padding:10px 12px;font-size:1rem;color:var(--tinta);
+  background:var(--zebra);border:none;border-radius:10px;font-variant-numeric:tabular-nums;
+}
+.campo input:focus-visible,.campo select:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--foco);outline-offset:1px}
+.campo input[aria-invalid="true"]{background:var(--cobre-suave);color:var(--cobre)}
+.error-global{display:none;background:var(--cobre-suave);color:var(--cobre);border-radius:10px;padding:10px 12px;font-size:.88rem;margin-bottom:12px}
+.error-global.visible{display:block}
+.fila2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.producto{background:var(--zebra);border-radius:12px;padding:12px;margin-bottom:10px}
+.producto .nombre input{background:var(--tarjeta);font-weight:600}
+.producto .nota{font-size:.74rem;color:var(--tinta2);margin-top:6px}
+.producto .fila3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.producto .fila3 label{font-size:.72rem}
+.producto .fila3 input{background:var(--tarjeta)}
+.derivados{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.dato{background:var(--zebra);border-radius:12px;padding:10px 12px}
+.dato .etq{font-size:.74rem;color:var(--tinta2)}
+.dato .val{font-size:1.05rem;font-weight:700;font-variant-numeric:tabular-nums}
+.escenarios{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.esc{background:var(--zebra);border-radius:12px;padding:14px;position:relative}
+.esc.ganador{background:var(--verde-suave)}
+.esc .insignia{position:absolute;top:12px;right:12px;background:var(--verde);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:99px}
+.esc h3{margin:0;font-size:.95rem}
+.esc .desc{font-size:.76rem;color:var(--tinta2);margin:2px 0 10px;min-height:2.2em}
+.esc dl{margin:0;display:grid;grid-template-columns:auto auto;gap:3px 10px;font-size:.85rem}
+.esc dt{color:var(--tinta2)}
+.esc dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.esc .total{margin-top:10px;padding-top:8px}
+.esc .total .etq{font-size:.74rem;color:var(--tinta2)}
+.esc .total .val{font-size:1.3rem;font-weight:800;font-variant-numeric:tabular-nums}
+.esc.ganador .total .val{color:var(--verde)}
+.nota-s4{margin-top:12px;background:var(--verde-suave);border-radius:10px;padding:10px 12px;font-size:.88rem}
+.tabla-envoltura{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.86rem;font-variant-numeric:tabular-nums}
+th{text-align:right;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tinta2);padding:8px 10px;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 10px;text-align:right;white-space:nowrap}
+tbody tr:nth-child(odd) td{background:var(--zebra)}
+tbody tr td:first-child{border-radius:8px 0 0 8px}
+tbody tr td:last-child{border-radius:0 8px 8px 0}
+.si{color:var(--verde);font-weight:700}
+.no{color:var(--cobre);font-weight:700}
+.pos{color:var(--verde)}
+.neg{color:var(--cobre)}
+details{background:var(--tarjeta);border-radius:var(--radio);box-shadow:var(--sombra);margin-bottom:18px}
+summary{cursor:pointer;padding:16px 18px;font-weight:600;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"▸";float:right;font-size:1.2rem;color:var(--tinta2)}
+details[open] summary::after{content:"▾"}
+details .contenido{padding:0 18px 18px}
+.selector-esc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.selector-esc button{
+  border:none;background:var(--zebra);color:var(--tinta);border-radius:99px;
+  padding:8px 14px;font-size:.85rem;font-weight:600;cursor:pointer
+}
+.selector-esc button[aria-pressed="true"]{background:var(--tinta);color:#fff}
+.pie{color:var(--tinta2);font-size:.78rem;max-width:1180px;margin:8px auto 0}
+@media(prefers-reduced-motion:no-preference){
+  .tarjeta,details{transition:box-shadow .15s ease}
+}
+</style>
+</head>
+<body>
+<div class="disposicion">
+  <div class="col-entradas">
+    <h1>Hipoteca</h1>
+    <p class="sub">Comparador de escenarios con bonificaciones. El cálculo ocurre en este dispositivo; no se envía ningún dato.</p>
+
+    <section class="tarjeta" aria-labelledby="t-prestamo">
+      <span class="eyebrow">Entradas</span>
+      <h2 id="t-prestamo">Préstamo</h2>
+      <div class="error-global" id="errores" role="alert"></div>
+      <div class="campo"><label for="importe">Importe del inmueble (€)</label>
+        <input id="importe" inputmode="decimal" value="280000"></div>
+      <div class="fila2">
+        <div class="campo"><label for="ltv">Financiación LTV (%)</label>
+          <input id="ltv" inputmode="decimal" value="80"></div>
+        <div class="campo"><label for="plazo">Plazo (años, 1 a 40)</label>
+          <input id="plazo" inputmode="numeric" value="30"></div>
+      </div>
+      <div class="campo"><label for="tin">TIN anual sin bonificar (%)</label>
+        <input id="tin" inputmode="decimal" value="2,15"></div>
+      <div class="fila2">
+        <div class="campo"><label for="comtipo">Comisión de apertura</label>
+          <select id="comtipo"><option value="Porcentaje">Porcentaje</option><option value="Importe">Importe fijo (€)</option></select></div>
+        <div class="campo"><label for="comvalor">Valor de la comisión</label>
+          <input id="comvalor" inputmode="decimal" value="0"></div>
+      </div>
+      <div class="campo"><label for="impuestos">Impuestos sobre el precio (%)</label>
+        <input id="impuestos" inputmode="decimal" value="10"></div>
+    </section>
+
+    <section class="tarjeta" aria-labelledby="t-productos">
+      <span class="eyebrow">Entradas</span>
+      <h2 id="t-productos">Productos vinculados</h2>
+      <div id="productos"></div>
+    </section>
+  </div>
+
+  <div class="col-resultados">
+    <section class="tarjeta" aria-labelledby="t-derivados">
+      <span class="eyebrow">Resultados</span>
+      <h2 id="t-derivados">Préstamo resultante</h2>
+      <div class="derivados" id="derivados"></div>
+    </section>
+
+    <section class="tarjeta" aria-labelledby="t-escenarios">
+      <span class="eyebrow">Resultados</span>
+      <h2 id="t-escenarios">Comparación de escenarios</h2>
+      <div class="escenarios" id="escenarios"></div>
+      <div class="nota-s4" id="nota-s4"></div>
+    </section>
+
+    <section class="tarjeta" aria-labelledby="t-analisis">
+      <span class="eyebrow">Resultados</span>
+      <h2 id="t-analisis">Análisis por producto</h2>
+      <p class="sub" style="margin-bottom:10px">Cada producto se compara de forma aislada: contratarlo con el banco (con su bonificación) frente a contratarlo fuera. El mes indicado es aquel a partir del cual, si ya lo tienes con el banco, compensa pasarlo fuera aunque el banco retire la bonificación.</p>
+      <div class="tabla-envoltura"><table id="tabla-analisis">
+        <thead><tr><th>Producto</th><th>Bonif. (p.p.)</th><th>Banco (€/año)</th><th>Fuera (€/año)</th><th>¿Con el banco?</th><th>Ahorro total</th><th>Mes para pasar fuera</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <p class="sub" id="analisis-vacio" style="margin:6px 0 0"></p>
+    </section>
+
+    <details>
+      <summary>Coste total de la vivienda por escenario</summary>
+      <div class="contenido">
+        <p class="sub" style="margin-bottom:10px">Entrada no financiada, devolución del préstamo (capital más comisión), intereses e impuestos. No incluye el coste de los productos ni gastos de notaría y registro.</p>
+        <div class="tabla-envoltura"><table id="tabla-vivienda">
+          <thead><tr><th>Escenario</th><th>Coste total de la vivienda</th></tr></thead><tbody></tbody>
+        </table></div>
+      </div>
+    </details>
+
+    <details id="det-amort">
+      <summary>Cuadro de amortización</summary>
+      <div class="contenido">
+        <div class="selector-esc" id="selector-amort" role="group" aria-label="Escenario del cuadro"></div>
+        <div class="tabla-envoltura"><table id="tabla-amort">
+          <thead><tr><th>Mes</th><th>Cuota</th><th>Interés</th><th>Amortización</th><th>Pendiente</th><th>Productos</th><th>Pago total</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </details>
+  </div>
+</div>
+<p class="pie">Modelo: sistema francés con capitalización mensual, TIN mínimo bonificado 0,01%. Escenario 4 calculado evaluando todas las combinaciones de productos con bonificación. Herramienta orientativa; las condiciones reales las fija tu entidad.</p>
+
+<script>
+/* =====================================================================
+   Motor de cálculo hipotecario (sistema francés, capitalización mensual)
+   Modelo corregido respecto al Excel original:
+   1. Los productos 3 a 8 cuentan en costes y bonificaciones (en el Excel
+      las filas 21 a 26 de la hoja Calc estaban vacías).
+   2. El escenario S3 paga el coste bancario de cada producto que aprovecha.
+   3. El "mes para pasar fuera" se calcula para todos los productos.
+   Añadido: escenario S4, óptimo exacto por enumeración de subconjuntos.
+   Sin dependencias. Funciona en navegador y en Node.
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  var TIN_MIN = 0.01; // suelo del TIN bonificado, en %, igual que el Excel
+
+  function pmt(P, tinPct, n) {
+    var r = tinPct / 100 / 12;
+    if (r === 0) return P / n;
+    return P * r / (1 - Math.pow(1 + r, -n));
+  }
+
+  function interesTotal(P, tinPct, n) {
+    return pmt(P, tinPct, n) * n - P;
+  }
+
+  function tinBonificado(tinBase, bonif) {
+    return Math.max(TIN_MIN, tinBase - bonif);
+  }
+
+  // Saldo vivo tras m meses de un préstamo P a tipo mensual r con cuota c
+  function saldoVivo(P, r, c, m) {
+    if (r === 0) return P - c * m;
+    var f = Math.pow(1 + r, m);
+    return P * f - c * (f - 1) / r;
+  }
+
+  /* Mes mínimo a partir del cual conviene pasar el producto fuera del banco,
+     analizando el producto de forma aislada (mismo criterio que el Excel):
+     opción A (salir en el mes m): el banco retira la bonificación y la cuota
+     se recalcula al TIN base sobre el saldo restante; se paga el coste fuera.
+     opción B (seguir): se mantiene la cuota bonificada y el coste banco.
+     Devuelve null si nunca compensa dentro del plazo. */
+  function mesParaPasarFuera(P, n, tinBase, prod) {
+    var rBase = tinBase / 100 / 12;
+    var tinLow = tinBonificado(tinBase, prod.bonif);
+    var rLow = tinLow / 100 / 12;
+    var cLow = pmt(P, tinLow, n);
+    for (var m = 1; m < n; m++) {
+      var B = saldoVivo(P, rLow, cLow, m);
+      var resto = n - m;
+      var cNueva = rBase === 0 ? B / resto : B * rBase / (1 - Math.pow(1 + rBase, -resto));
+      var costeSalir = (cNueva * resto - B) + prod.costeFuera / 12 * resto;
+      var costeSeguir = (cLow * resto - B) + prod.costeBanco / 12 * resto;
+      if (costeSalir - costeSeguir <= 0) return m;
+    }
+    return null;
+  }
+
+  function construirEscenario(nombre, descripcion, P, n, tinBase, bonif, participantes, enBancoSet, entradas) {
+    var tin = tinBonificado(tinBase, bonif);
+    var cuota = pmt(P, tin, n);
+    var intereses = cuota * n - P;
+    var costeMesProductos = 0;
+    var detalleProductos = [];
+    participantes.forEach(function (p) {
+      var enBanco = enBancoSet.indexOf(p.indice) !== -1;
+      var coste = (enBanco ? p.costeBanco : p.costeFuera) / 12;
+      costeMesProductos += coste;
+      detalleProductos.push({ nombre: p.nombre, enBanco: enBanco, costeMes: coste });
+    });
+    var costeProdTotal = costeMesProductos * n;
+    var costeFinal = intereses + costeProdTotal;
+    var costeVivienda = entradas.importe * (1 - entradas.ltv) // entrada no financiada
+      + P                                                     // devolución del principal (incluye comisión financiada)
+      + intereses
+      + entradas.importe * entradas.impuestosPct / 100;       // impuestos, editable
+    return {
+      nombre: nombre, descripcion: descripcion,
+      bonif: bonif, tin: tin, cuota: cuota,
+      costeMesProductos: costeMesProductos,
+      cuotaMaxima: cuota + costeMesProductos,
+      intereses: intereses,
+      costeProdTotal: costeProdTotal,
+      costeFinal: costeFinal,
+      costeVivienda: costeVivienda,
+      productosEnBanco: enBancoSet.slice(),
+      detalleProductos: detalleProductos
+    };
+  }
+
+  function cuadroAmortizacion(P, n, tinPct, costeMesProductos) {
+    var r = tinPct / 100 / 12;
+    var cuota = pmt(P, tinPct, n);
+    var filas = [];
+    var saldo = P;
+    for (var m = 1; m <= n; m++) {
+      var interes = saldo * r;
+      var amort = cuota - interes;
+      saldo -= amort;
+      filas.push({
+        mes: m, cuota: cuota, interes: interes, amortizacion: amort,
+        saldo: Math.abs(saldo) < 1e-6 ? 0 : saldo,
+        costeProductos: costeMesProductos,
+        pagoTotal: cuota + costeMesProductos
+      });
+    }
+    return filas;
+  }
+
+  /* Entradas:
+     { importe, ltv (0..1), plazoAnios, tin (%), comisionTipo ('Porcentaje'|'Importe'),
+       comisionValor, impuestosPct,
+       productos: [{ nombre, bonif (p.p.), costeBanco (eur/anio), costeFuera (eur/anio), siempre (bool) }] }
+     Regla heredada del Excel: los productos con siempre=true se contratan en
+     cualquier caso (banco o fuera); el resto solo participa si bonif > 0. */
+  function calcular(entradas) {
+    var capitalBase = entradas.importe * entradas.ltv;
+    var comision = entradas.comisionTipo === 'Porcentaje'
+      ? capitalBase * entradas.comisionValor / 100
+      : entradas.comisionValor;
+    var P = capitalBase + comision;
+    var n = Math.round(entradas.plazoAnios * 12);
+    var tinBase = entradas.tin;
+
+    var participantes = [];
+    entradas.productos.forEach(function (p, i) {
+      if (p.siempre || p.bonif > 0) {
+        participantes.push({
+          indice: i, nombre: p.nombre, bonif: Math.max(0, p.bonif),
+          costeBanco: p.costeBanco, costeFuera: p.costeFuera, siempre: !!p.siempre
+        });
+      }
+    });
+    var conBonif = participantes.filter(function (p) { return p.bonif > 0; });
+    var interesBase = interesTotal(P, tinBase, n);
+
+    // Análisis producto a producto (aislado)
+    var analisis = conBonif.map(function (p) {
+      var tinLow = tinBonificado(tinBase, p.bonif);
+      var costeCon = interesTotal(P, tinLow, n) + p.costeBanco / 12 * n;
+      var costeSin = interesBase + p.costeFuera / 12 * n;
+      var ahorro = costeSin - costeCon;
+      return {
+        indice: p.indice, nombre: p.nombre, bonif: p.bonif,
+        costeBanco: p.costeBanco, costeFuera: p.costeFuera,
+        ventajosa: ahorro > 0, ahorro: ahorro,
+        mesParaPasarFuera: mesParaPasarFuera(P, n, tinBase, p)
+      };
+    });
+
+    // S1: sin bonificaciones, todo fuera
+    var s1 = construirEscenario('Escenario 1', 'Sin bonificaciones, todo fuera',
+      P, n, tinBase, 0, participantes, [], entradas);
+
+    // S2: todas las bonificaciones, productos bonificados en banco
+    var bonif2 = conBonif.reduce(function (a, p) { return a + p.bonif; }, 0);
+    var enBanco2 = conBonif.map(function (p) { return p.indice; });
+    var s2 = construirEscenario('Escenario 2', 'Todas las bonificaciones, todo en banco',
+      P, n, tinBase, bonif2, participantes, enBanco2, entradas);
+
+    // S3: óptimo producto a producto (análisis aislado)
+    var ventajosas = analisis.filter(function (a) { return a.ventajosa; });
+    var bonif3 = ventajosas.reduce(function (a, p) { return a + p.bonif; }, 0);
+    var enBanco3 = ventajosas.map(function (a) { return a.indice; });
+    var s3 = construirEscenario('Escenario 3', 'Óptimo producto a producto',
+      P, n, tinBase, bonif3, participantes, enBanco3, entradas);
+
+    // S4: óptimo exacto, enumeración de los 2^k subconjuntos de productos con bonificación
+    var k = conBonif.length;
+    var mejor = null;
+    for (var mask = 0; mask < (1 << k); mask++) {
+      var bonif = 0, extraBanco = 0, extraFuera = 0, set = [];
+      for (var j = 0; j < k; j++) {
+        var p = conBonif[j];
+        if (mask & (1 << j)) { bonif += p.bonif; extraBanco += p.costeBanco; set.push(p.indice); }
+        else { extraFuera += p.costeFuera; }
+      }
+      var costeSiempreFuera = participantes.reduce(function (a, q) {
+        return a + (q.bonif > 0 ? 0 : q.costeFuera);
+      }, 0);
+      var total = interesTotal(P, tinBonificado(tinBase, bonif), n)
+        + (extraBanco + extraFuera + costeSiempreFuera) / 12 * n;
+      if (mejor === null || total < mejor.total - 1e-9) mejor = { total: total, set: set, bonif: bonif };
+    }
+    if (mejor === null) mejor = { total: s1.costeFinal, set: [], bonif: 0 };
+    var s4 = construirEscenario('Escenario 4', 'Óptimo exacto (todas las combinaciones)',
+      P, n, tinBase, mejor.bonif, participantes, mejor.set, entradas);
+
+    var escenarios = [s1, s2, s3, s4];
+    var ganador123 = [s1, s2, s3].reduce(function (a, b) { return b.costeFinal < a.costeFinal ? b : a; });
+
+    return {
+      capitalBase: capitalBase, comision: comision, prestamoTotal: P, nMeses: n,
+      interesBase: interesBase,
+      analisis: analisis,
+      escenarios: escenarios,
+      ganador123: ganador123.nombre,
+      s4igualS3: Math.abs(s4.costeFinal - s3.costeFinal) < 0.005,
+      amortizacion: function (idx) {
+        var e = escenarios[idx];
+        return cuadroAmortizacion(P, n, e.tin, e.costeMesProductos);
+      }
+    };
+  }
+
+  var api = { calcular: calcular, pmt: pmt, interesTotal: interesTotal, mesParaPasarFuera: mesParaPasarFuera, TIN_MIN: TIN_MIN };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else global.HipotecaEngine = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+'use strict';
+(function(){
+  var E = window.HipotecaEngine;
+  var $ = function(id){ return document.getElementById(id); };
+
+  var fmtEur = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'});
+  var fmtEur0 = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+  var fmtNum = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2});
+  function eur(x){ return fmtEur.format(x); }
+  function eur0(x){ return fmtEur0.format(x); }
+  function pct(x){ return fmtNum.format(x) + ' %'; }
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+  function parseNum(s){
+    s = String(s).trim();
+    if(s === '') return NaN;
+    if(s.indexOf(',') !== -1){ s = s.replace(/\./g,'').replace(',','.'); }
+    else if(/^-?\d{1,3}(\.\d{3})+$/.test(s)){ s = s.replace(/\./g,''); }
+    if(!/^-?\d+(\.\d*)?$/.test(s)) return NaN;
+    return parseFloat(s);
+  }
+
+  var productosDef = [
+    {nombre:'Seguro de Vida', bonif:0, banco:1300, fuera:450, siempre:true},
+    {nombre:'Seguro de Hogar', bonif:0, banco:458, fuera:350, siempre:true},
+    {nombre:'Domiciliación de Nómina', bonif:0, banco:0, fuera:0, siempre:false},
+    {nombre:'Alarma', bonif:0, banco:0, fuera:0, siempre:false},
+    {nombre:'Certificado Energético', bonif:0, banco:0, fuera:0, siempre:false},
+    {nombre:'Plan de Pensiones', bonif:0, banco:0, fuera:0, siempre:false},
+    {nombre:'Cartera de Inversiones', bonif:0, banco:0, fuera:0, siempre:false},
+    {nombre:'Otros', bonif:0, banco:0, fuera:0, siempre:false}
+  ];
+
+  function montarProductos(){
+    var cont = $('productos');
+    productosDef.forEach(function(p,i){
+      var div = document.createElement('div');
+      div.className = 'producto';
+      div.innerHTML =
+        '<div class="campo nombre" style="margin:0"><label for="p'+i+'n">Producto '+(i+1)+'</label>'+
+        '<input id="p'+i+'n" value="'+esc(p.nombre)+'"></div>'+
+        '<div class="fila3">'+
+        '<div class="campo" style="margin:0"><label for="p'+i+'b">Bonif. (p.p.)</label><input id="p'+i+'b" inputmode="decimal" value="'+p.bonif+'"></div>'+
+        '<div class="campo" style="margin:0"><label for="p'+i+'c">Banco €/año</label><input id="p'+i+'c" inputmode="decimal" value="'+p.banco+'"></div>'+
+        '<div class="campo" style="margin:0"><label for="p'+i+'f">Fuera €/año</label><input id="p'+i+'f" inputmode="decimal" value="'+p.fuera+'"></div>'+
+        '</div>'+
+        '<div class="nota">'+(p.siempre?'Se contrata siempre, con el banco o fuera.':'Solo cuenta si su bonificación es mayor que 0.')+'</div>';
+      cont.appendChild(div);
+    });
+  }
+
+  var reglas = [
+    {id:'importe', min:1, max:100000000, msg:'El importe del inmueble debe ser un número positivo.'},
+    {id:'ltv', min:1, max:100, msg:'La financiación LTV debe estar entre 1 y 100.'},
+    {id:'plazo', min:1, max:40, entero:true, msg:'El plazo debe ser un número entero entre 1 y 40 años.'},
+    {id:'tin', min:0.01, max:30, msg:'El TIN debe estar entre 0,01 y 30.'},
+    {id:'comvalor', min:0, max:1000000, msg:'La comisión no puede ser negativa.'},
+    {id:'impuestos', min:0, max:30, msg:'Los impuestos deben estar entre 0 y 30.'}
+  ];
+
+  function leerEntradas(){
+    var errores = [];
+    var v = {};
+    reglas.forEach(function(r){
+      var el = $(r.id);
+      var x = parseNum(el.value);
+      var mal = isNaN(x) || x < r.min || x > r.max || (r.entero && x !== Math.round(x));
+      var msg = r.msg;
+      if(r.id === 'comvalor' && $('comtipo').value === 'Porcentaje' && !isNaN(x) && x > 10){ mal = true; msg = 'La comisión en porcentaje no puede superar 10.'; }
+      el.setAttribute('aria-invalid', mal ? 'true' : 'false');
+      if(mal){ if(errores.indexOf(msg) === -1) errores.push(msg); } else v[r.id] = x;
+    });
+    var productos = productosDef.map(function(p,i){
+      var b = parseNum($('p'+i+'b').value), c = parseNum($('p'+i+'c').value), f = parseNum($('p'+i+'f').value);
+      var mal = [b,c,f].some(function(x){ return isNaN(x) || x < 0; }) || b > 10;
+      ['b','c','f'].forEach(function(k){ $('p'+i+k).setAttribute('aria-invalid', mal ? 'true' : 'false'); });
+      if(mal) errores.push('Producto '+(i+1)+': bonificación entre 0 y 10 y costes no negativos.');
+      return {nombre: $('p'+i+'n').value || ('Producto '+(i+1)), bonif:b, costeBanco:c, costeFuera:f, siempre:p.siempre};
+    });
+    if(errores.length) return {errores:errores};
+    return {errores:[], entradas:{
+      importe:v.importe, ltv:v.ltv/100, plazoAnios:v.plazo, tin:v.tin,
+      comisionTipo:$('comtipo').value, comisionValor:v.comvalor,
+      impuestosPct:v.impuestos, productos:productos
+    }};
+  }
+
+  var resultado = null;
+  var escAmort = 3;
+
+  function render(){
+    var lectura = leerEntradas();
+    var caja = $('errores');
+    if(lectura.errores.length){
+      caja.textContent = lectura.errores.join(' ');
+      caja.classList.add('visible');
+      return; // se conservan los últimos resultados válidos
+    }
+    caja.classList.remove('visible');
+    resultado = E.calcular(lectura.entradas);
+    renderDerivados(); renderEscenarios(); renderAnalisis(); renderVivienda(); renderAmort();
+  }
+
+  function renderDerivados(){
+    var r = resultado;
+    $('derivados').innerHTML =
+      dato('Capital base', eur(r.capitalBase)) +
+      dato('Comisión financiada', eur(r.comision)) +
+      dato('Préstamo total', eur(r.prestamoTotal)) +
+      dato('Cuotas', r.nMeses + ' meses');
+    function dato(e,v){ return '<div class="dato"><div class="etq">'+e+'</div><div class="val">'+v+'</div></div>'; }
+  }
+
+  function renderEscenarios(){
+    var r = resultado;
+    function par(t,v){ return '<dt>'+t+'</dt><dd>'+v+'</dd>'; }
+    var min = Math.min.apply(null, r.escenarios.map(function(e){ return e.costeFinal; }));
+    $('escenarios').innerHTML = r.escenarios.map(function(e,i){
+      var gana = e.costeFinal - min < 0.005;
+      return '<div class="esc'+(gana?' ganador':'')+'">'+
+        (gana?'<span class="insignia">Menor coste</span>':'')+
+        '<h3>'+esc(e.nombre)+'</h3><div class="desc">'+esc(e.descripcion)+'</div>'+
+        '<dl>'+
+        par('Bonificación', fmtNum.format(e.bonif)+' p.p.')+
+        par('TIN', pct(e.tin))+
+        par('Cuota', eur(e.cuota))+
+        par('Productos al mes', eur(e.costeMesProductos))+
+        par('Cuota máxima', eur(e.cuotaMaxima))+
+        par('Intereses', eur0(e.intereses))+
+        par('Productos totales', eur0(e.costeProdTotal))+
+        '</dl>'+
+        '<div class="total"><div class="etq">Coste final (intereses y productos)</div><div class="val">'+eur(e.costeFinal)+'</div></div>'+
+        '</div>';
+    }).join('');
+    var s3 = r.escenarios[2], s4 = r.escenarios[3];
+    var nota;
+    if(r.analisis.length === 0){
+      nota = 'No hay productos con bonificación: los cuatro escenarios coinciden.';
+    } else if(r.s4igualS3){
+      nota = 'El óptimo exacto (escenario 4) coincide con el óptimo producto a producto (escenario 3).';
+    } else {
+      var nombres = s4.detalleProductos.filter(function(d){ return d.enBanco; }).map(function(d){ return d.nombre; });
+      nota = 'El óptimo exacto mejora al escenario 3 en '+eur(s3.costeFinal - s4.costeFinal)+
+        '. Contrata con el banco: '+(nombres.length ? nombres.map(esc).join(', ') : 'ningún producto')+'.';
+    }
+    $('nota-s4').textContent = nota;
+  }
+
+  function renderAnalisis(){
+    var r = resultado;
+    var tb = $('tabla-analisis').querySelector('tbody');
+    tb.innerHTML = r.analisis.map(function(a){
+      return '<tr><td>'+esc(a.nombre)+'</td><td>'+fmtNum.format(a.bonif)+'</td>'+
+        '<td>'+eur(a.costeBanco)+'</td><td>'+eur(a.costeFuera)+'</td>'+
+        '<td class="'+(a.ventajosa?'si':'no')+'">'+(a.ventajosa?'Sí':'No')+'</td>'+
+        '<td class="'+(a.ahorro>0?'pos':'neg')+'">'+eur(a.ahorro)+'</td>'+
+        '<td>'+(a.mesParaPasarFuera === null ? 'Nunca' : a.mesParaPasarFuera)+'</td></tr>';
+    }).join('');
+    $('analisis-vacio').textContent = r.analisis.length ? '' : 'Asigna una bonificación mayor que 0 a algún producto para ver su análisis.';
+  }
+
+  function renderVivienda(){
+    var tb = $('tabla-vivienda').querySelector('tbody');
+    tb.innerHTML = resultado.escenarios.map(function(e){
+      return '<tr><td>'+esc(e.nombre)+'</td><td>'+eur(e.costeVivienda)+'</td></tr>';
+    }).join('');
+  }
+
+  function renderAmort(){
+    var sel = $('selector-amort');
+    sel.innerHTML = resultado.escenarios.map(function(e,i){
+      return '<button type="button" data-i="'+i+'" aria-pressed="'+(i===escAmort)+'">'+esc(e.nombre)+'</button>';
+    }).join('');
+    if(!$('det-amort').open) { $('tabla-amort').querySelector('tbody').innerHTML=''; return; }
+    var filas = resultado.amortizacion(escAmort);
+    var html = '';
+    for(var i=0;i<filas.length;i++){
+      var f = filas[i];
+      html += '<tr><td>'+f.mes+'</td><td>'+eur(f.cuota)+'</td><td>'+eur(f.interes)+'</td>'+
+        '<td>'+eur(f.amortizacion)+'</td><td>'+eur(f.saldo)+'</td>'+
+        '<td>'+eur(f.costeProductos)+'</td><td>'+eur(f.pagoTotal)+'</td></tr>';
+    }
+    $('tabla-amort').querySelector('tbody').innerHTML = html;
+  }
+
+  $('selector-amort').addEventListener('click', function(ev){
+    var b = ev.target.closest('button'); if(!b) return;
+    escAmort = parseInt(b.getAttribute('data-i'),10);
+    renderAmort();
+  });
+  $('det-amort').addEventListener('toggle', renderAmort);
+
+  montarProductos();
+  document.body.addEventListener('input', render);
+  document.body.addEventListener('change', render);
+  render();
+
+  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
